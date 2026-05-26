@@ -8,31 +8,37 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const webhookUrl =
+    "https://tgpm.app.n8n.cloud/webhook/1eebb123-9c0e-4dc2-9d83-d7169a2ec550";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setLoading(true);
     setMessage("");
 
-    const res = await fetch("/api/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        link,
-        notes,
-      }),
-    });
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cartLink: link,
+          notes: notes,
+          submittedAt: new Date().toISOString(),
+        }),
+      });
 
-    const data = await res.json();
-
-    if (res.ok) {
-      setMessage("Request submitted successfully.");
-      setLink("");
-      setNotes("");
-    } else {
-      setMessage(data.error || "Something went wrong.");
+      if (res.ok) {
+        setMessage("Request submitted successfully.");
+        setLink("");
+        setNotes("");
+      } else {
+        setMessage("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      setMessage("Could not submit request. Please try again.");
     }
 
     setLoading(false);
@@ -82,23 +88,12 @@ export default function Home() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "12px 20px",
-            cursor: "pointer",
-          }}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Submit"}
         </button>
       </form>
 
-      {message && (
-        <p style={{ marginTop: "20px" }}>
-          {message}
-        </p>
-      )}
+      {message && <p style={{ marginTop: "20px" }}>{message}</p>}
     </main>
   );
 }
